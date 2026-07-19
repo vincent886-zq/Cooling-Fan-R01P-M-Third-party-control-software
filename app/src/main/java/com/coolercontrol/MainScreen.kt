@@ -159,7 +159,10 @@ private fun StatusCards(state: CoolerUiState) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.spacedBy(10.dp)) {
         StatusCard("🌡️", state.temperature?.let { "${it}°C" } ?: "--°C", "温度",
                    state.temperature?.let { if (it<10) Blue else if (it<20) Color(0xFF66BBFF) else Orange } ?: Tx2)
-        StatusCard("🔥", state.powerMode, "功率", Tx1)
+        val powerIcon = when (state.powerMode) {
+            "静音" -> "🍃"; "智能" -> "🌪️"; "极寒" -> "❄️"; else -> "🔥"
+        }
+        StatusCard(powerIcon, state.powerMode, "功率", Tx1)
         StatusCard("💡", state.lightMode, "灯效", Tx1)
     }
 }
