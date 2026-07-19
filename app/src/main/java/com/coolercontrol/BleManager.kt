@@ -174,7 +174,7 @@ class BleManager(private val context: Context) {
 
             // Enable notifications
             gatt.setCharacteristicNotification(notifyChar, true)
-            val descriptor: BluetoothGattDescriptor? = notifyChar.getDescriptor(
+            val descriptor: BluetoothGattDescriptor? = notifyChar?.getDescriptor(
                 java.util.UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
             )
             if (descriptor != null) {
