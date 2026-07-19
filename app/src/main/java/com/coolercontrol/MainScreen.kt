@@ -236,6 +236,7 @@ private fun StatusCard(label: String, value: String, valueColor: Color) {
     }
 }
 
+@Composable
 private fun tempColor(temp: Int?): Color = when {
     temp == null -> MaterialTheme.colorScheme.onSurfaceVariant
     temp < 10   -> Color(0xFF0088FF)
