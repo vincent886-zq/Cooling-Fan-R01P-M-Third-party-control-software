@@ -294,7 +294,7 @@ private fun ControlGroup(title: String, content: @Composable RowScope.() -> Unit
 }
 
 @Composable
-private fun ControlButton(text: String, onClick: () -> Unit) {
+private fun RowScope.ControlButton(text: String, onClick: () -> Unit) {
     Button(
         onClick = onClick,
         shape = RoundedCornerShape(10.dp),
