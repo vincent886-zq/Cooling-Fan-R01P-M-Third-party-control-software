@@ -2,6 +2,7 @@ package com.coolercontrol
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -13,8 +14,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -210,11 +213,18 @@ private fun ControlGroup(title: String, content: @Composable RowScope.() -> Unit
 
 @Composable
 private fun RowScope.CtrlBtn(text: String, onClick: () -> Unit) {
-    Button(onClick=onClick, shape=RoundedCornerShape(12.dp),
-        colors=ButtonDefaults.buttonColors(containerColor=CardBd, contentColor=Tx1),
-        contentPadding=PaddingValues(horizontal=10.dp, vertical=10.dp),
-        modifier=Modifier.weight(1f)
-    ) { Text(text, fontSize=12.sp, fontWeight=FontWeight.Medium, maxLines=1) }
+    val shape = RoundedCornerShape(22.dp)
+    Box(
+        modifier = Modifier
+            .weight(1f)
+            .height(46.dp)
+            .background(Color.White, shape)
+            .border(1.5.dp, Color(0xFF00B4D8), shape)
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Text(text, fontSize=14.sp, fontWeight=FontWeight.Bold, color=Color(0xFF1A1A2E))
+    }
 }
 
 // ============= Log =============
