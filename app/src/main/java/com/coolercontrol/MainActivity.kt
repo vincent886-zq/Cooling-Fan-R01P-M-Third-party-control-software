@@ -2,7 +2,6 @@ package com.coolercontrol
 
 import android.Manifest
 import android.bluetooth.BluetoothAdapter
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -53,18 +52,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Check BLE
+        // Check BLE hardware
         if (!packageManager.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
             setContent { BLEErrorScreen("此设备不支持蓝牙低功耗 (BLE)") }
-            return
-        }
-        val btAdapter = ContextCompat.getSystemService(this, BluetoothAdapter::class.java)
-        if (btAdapter == null || !btAdapter.isEnabled) {
-            // Request user to enable Bluetooth
-            val enableBt = registerForActivityResult(
-                ActivityResultContracts.StartActivityForResult()
-            ) { setContent { CoolerScreen() } }
-            enableBt.launch(Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE))
             return
         }
 

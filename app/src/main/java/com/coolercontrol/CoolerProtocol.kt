@@ -123,8 +123,8 @@ object CoolerProtocol {
         var light: LightMode? = null
 
         var i = 0
-        val b0 = 0x00
-        val b3F = 0x3F
+        val b0 = 0x00.toByte()
+        val b3F = 0x3F.toByte()
         val b40 = 0x40
         val b42 = 0x42
 

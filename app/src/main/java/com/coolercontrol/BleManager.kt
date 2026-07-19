@@ -57,16 +57,12 @@ class BleManager(private val context: Context) {
         }
         isScanning = true
 
-        // Filter: look for Telink service or known name prefixes
-        val filters = CoolerProtocol.KNOWN_NAME_PREFIXES.map { prefix ->
-            ScanFilter.Builder().setDeviceName(prefix).build()
-        }
-
+        // Scan all devices, filter by name in callback (ScanFilter.setDeviceName is exact match only)
         val settings = ScanSettings.Builder()
             .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
             .build()
 
-        scanner.startScan(filters, settings, scanCallback)
+        scanner.startScan(emptyList(), settings, scanCallback)
         onLog?.invoke("Scanning...")
 
         // Auto-stop after timeout
@@ -90,6 +86,9 @@ class BleManager(private val context: Context) {
             val name = device.name ?: "(unknown)"
             val rssi = result.rssi
             onScanResult?.invoke(name, device.address, rssi)
+        }
+        override fun onScanFailed(errorCode: Int) {
+            onLog?.invoke("Scan failed: error code $errorCode")
         }
     }
 
