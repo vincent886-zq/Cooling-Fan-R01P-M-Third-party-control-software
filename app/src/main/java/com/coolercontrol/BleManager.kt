@@ -37,7 +37,6 @@ class BleManager(private val context: Context) {
     private var bluetoothLeScanner: BluetoothLeScanner? = null
     private var gatt: BluetoothGatt? = null
     private var writeChar: BluetoothGattCharacteristic? = null
-    private var seq: Byte = 1
     private var isScanning = false
     private var isConnected = false
 
@@ -144,6 +143,8 @@ class BleManager(private val context: Context) {
             writeChar = service.getCharacteristic(
                 java.util.UUID.fromString(CoolerProtocol.WRITE_CHAR)
             )
+            // Use write-without-response (matches Python behavior)
+            writeChar?.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
             val notifyChar = service.getCharacteristic(
                 java.util.UUID.fromString(CoolerProtocol.NOTIFY_CHAR)
             )
@@ -195,25 +196,23 @@ class BleManager(private val context: Context) {
     private fun doAuth() {
         onLog?.invoke("Auth c0/c1...")
         CoolerProtocol.AUTH_FRAMES.forEach { frame ->
-            write(frame, delayMs = 150)
+            write(frame, delayMs = 300)
         }
         CoolerProtocol.INIT_FRAMES.forEach { frame ->
-            write(frame, delayMs = 80)
+            write(frame, delayMs = 150)
         }
         onLog?.invoke("Auth complete ✓")
         onConnected?.invoke(true)
     }
 
     fun setPowerMode(mode: CoolerProtocol.PowerMode) {
-        val frame = CoolerProtocol.buildPowerFrame(seq, mode)
-        seq = ((seq.toInt() + 1) and 0xFF).toByte()
+        val frame = CoolerProtocol.buildPowerFrame(mode)
         write(frame)
         onLog?.invoke("→ Power: ${mode.label}")
     }
 
     fun setLightMode(mode: CoolerProtocol.LightMode) {
-        val frame = CoolerProtocol.buildLightFrame(seq, mode)
-        seq = ((seq.toInt() + 1) and 0xFF).toByte()
+        val frame = CoolerProtocol.buildLightFrame(mode)
         write(frame)
         onLog?.invoke("→ Light: ${mode.label}")
     }

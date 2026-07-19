@@ -73,10 +73,10 @@ object CoolerProtocol {
         }
     }
 
-    fun buildPowerFrame(seq: Byte, mode: PowerMode): ByteArray {
+    fun buildPowerFrame(mode: PowerMode): ByteArray {
         return b(
             0xFE, 0xDC, 0xBA, 0xC1, 0xF2, 0x00, 0x06,
-            seq.toInt(), 0x04, 0x00, 0x40,
+            0x01, 0x04, 0x00, 0x40,
             (mode.value and 0xFF),
             (mode.value ushr 8),
             0xEF
@@ -98,10 +98,10 @@ object CoolerProtocol {
         }
     }
 
-    fun buildLightFrame(seq: Byte, mode: LightMode): ByteArray {
+    fun buildLightFrame(mode: LightMode): ByteArray {
         return b(
             0xFE, 0xDC, 0xBA, 0xC1, 0xF2, 0x00, 0x06,
-            seq.toInt(), 0x04, 0x00, 0x42,
+            0x02, 0x04, 0x00, 0x42,
             (mode.value and 0xFF),
             (mode.value ushr 8),
             0xEF
