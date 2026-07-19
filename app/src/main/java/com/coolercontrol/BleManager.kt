@@ -7,8 +7,6 @@ import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult
 import android.bluetooth.le.ScanSettings
 import android.content.Context
-import android.os.Handler
-import android.os.Looper
 import java.util.Timer
 import java.util.TimerTask
 import java.util.UUID
@@ -163,8 +161,6 @@ class BleManager(private val context: Context) {
             writeChar = service.getCharacteristic(
                 java.util.UUID.fromString(CoolerProtocol.WRITE_CHAR)
             )
-            // Use write-without-response (matches Python behavior)
-            writeChar?.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
             val notifyChar = service.getCharacteristic(
                 java.util.UUID.fromString(CoolerProtocol.NOTIFY_CHAR)
             )
@@ -237,17 +233,13 @@ class BleManager(private val context: Context) {
         onLog?.invoke("→ Light: ${mode.label}")
     }
 
-    private val mainHandler = Handler(Looper.getMainLooper())
-
     private fun write(data: ByteArray, delayMs: Long = 0) {
         val char = writeChar ?: return
-        mainHandler.post {
-            try {
-                char.value = data
-                gatt?.writeCharacteristic(char)
-            } catch (e: Exception) {
-                onLog?.invoke("Write failed: ${e.message}")
-            }
+        val g = gatt ?: return
+        try {
+            g.writeCharacteristic(char, data, BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE)
+        } catch (e: Exception) {
+            onLog?.invoke("Write failed: ${e.message}")
         }
         if (delayMs > 0) Thread.sleep(delayMs)
     }
