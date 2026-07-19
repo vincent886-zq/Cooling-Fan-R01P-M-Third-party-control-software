@@ -47,6 +47,18 @@ class BleManager(private val context: Context) {
     }
 
     // ================================================================
+    // Paired devices (alternative to BLE scan)
+    // ================================================================
+    fun getBondedCoolerAddress(): String? {
+        val adapter = bluetoothAdapter ?: return null
+        return adapter.bondedDevices?.firstOrNull { device ->
+            device.name?.let { name ->
+                CoolerProtocol.KNOWN_NAME_SUBSTR.any { name.lowercase().contains(it) }
+            } == true
+        }?.address
+    }
+
+    // ================================================================
     // Scan
     // ================================================================
     fun startScan(timeoutMs: Long = 8000) {
@@ -57,7 +69,14 @@ class BleManager(private val context: Context) {
         }
         isScanning = true
 
-        // Scan all devices, filter by name in callback (ScanFilter.setDeviceName is exact match only)
+        // Check paired devices first
+        val paired = getBondedCoolerAddress()
+        if (paired != null) {
+            onLog?.invoke("Found paired cooler: $paired")
+            onScanResult?.invoke("(已配对) 冰封散热背夹", paired, 0)
+        }
+
+        // Also start BLE scan for any nearby devices
         val settings = ScanSettings.Builder()
             .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
             .build()
