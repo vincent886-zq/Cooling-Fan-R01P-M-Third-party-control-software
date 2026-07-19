@@ -168,7 +168,7 @@ private fun StatusCards(state: CoolerUiState) {
 }
 
 @Composable
-private fun StatusCard(icon: String, value: String, label: String, valueColor: Color) {
+private fun RowScope.StatusCard(icon: String, value: String, label: String, valueColor: Color) {
     Surface(Modifier.weight(1f), shape=RoundedCornerShape(16.dp), color=CardBg,
             border = cardBorder) {
         Column(Modifier.padding(12.dp).fillMaxWidth(), horizontalAlignment=Alignment.CenterHorizontally) {
