@@ -167,19 +167,19 @@ class BleManager(private val context: Context) {
                 java.util.UUID.fromString(CoolerProtocol.NOTIFY_CHAR)
             )
 
-            if (writeChar == null || this.notifyChar == null) {
+            if (writeChar == null || notifyChar == null) {
                 onLog?.invoke("Required chars not found")
                 return
             }
 
             // Enable notifications
             gatt.setCharacteristicNotification(notifyChar, true)
-            val descriptor = this.notifyChar?.getDescriptor(
+            val descriptor: BluetoothGattDescriptor? = notifyChar.getDescriptor(
                 java.util.UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
             )
-            descriptor?.let {
-                it.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
-                gatt.writeDescriptor(it)
+            if (descriptor != null) {
+                descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
+                gatt.writeDescriptor(descriptor)
             }
 
             onLog?.invoke("Services ready, starting auth...")
