@@ -33,10 +33,9 @@ class MainActivity : ComponentActivity() {
     private val requiredPermissions = mutableListOf(
         Manifest.permission.BLUETOOTH_SCAN,
         Manifest.permission.BLUETOOTH_CONNECT,
+        Manifest.permission.ACCESS_FINE_LOCATION,
     ).apply {
-        // Android 11 and below need location for BLE scanning
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.R) {
-            add(Manifest.permission.ACCESS_FINE_LOCATION)
             add(Manifest.permission.ACCESS_COARSE_LOCATION)
         }
     }
