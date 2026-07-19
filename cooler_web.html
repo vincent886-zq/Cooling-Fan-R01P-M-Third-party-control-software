@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>小米冰封散热背夹 · Web 控制</title>
+<style>
+  :root {
+    --bg: #0f0f14;
+    --card: #1a1a24;
+    --card2: #22222f;
+    --accent: #4a7aff;
+    --accent2: #6c5ce7;
+    --green: #00d68f;
+    --orange: #ff9f43;
+    --red: #ee5a24;
+    --text: #e8e8f0;
+    --muted: #8888a0;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 16px 16px 40px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  h1 {
+    font-size: 20px;
+    font-weight: 700;
+    text-align: center;
+    padding: 8px 0 4px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .subtitle { text-align: center; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+
+  /* Connection bar */
+  .conn-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .conn-row .status-badge {
+    flex: 1;
+    padding: 10px 14px;
+    background: var(--card);
+    border-radius: var(--radius);
+    font-size: 13px;
+    color: var(--muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .conn-row .status-badge.connected { color: var(--green); border-left: 3px solid var(--green); }
+  .conn-row .status-badge.disconnected { color: var(--muted); border-left: 3px solid #444; }
+  .btn {
+    border: none;
+    border-radius: var(--radius);
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .15s;
+    white-space: nowrap;
+    color: #fff;
+  }
+  .btn:active { transform: scale(0.95); }
+  .btn:disabled { opacity: 0.4; transform: none; cursor: default; }
+  .btn-primary { background: var(--accent); }
+  .btn-danger { background: var(--red); }
+  .btn-sm { padding: 8px 14px; font-size: 12px; }
+
+  /* Status cards */
+  .status-row {
+    display: flex;
+    gap: 10px;
+  }
+  .card {
+    flex: 1;
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 16px 8px;
+    text-align: center;
+  }
+  .card .value {
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1.2;
+  }
+  .card .label {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  #tempVal { color: var(--muted); }
+  #powerVal { font-size: 20px; }
+  #lightVal { font-size: 18px; }
+
+  /* Controls grid */
+  .ctrl-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .ctrl-group {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 12px;
+  }
+  .ctrl-group.full { grid-column: 1 / -1; }
+  .ctrl-group .title {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .opt-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .opt-btn {
+    flex: 1;
+    min-width: 56px;
+    padding: 10px 4px;
+    border: 1px solid #333;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .15s;
+    text-align: center;
+  }
+  .opt-btn:active { transform: scale(0.95); }
+  .opt-btn.active {
+    border-color: var(--accent);
+    background: rgba(74, 122, 255, .2);
+    color: var(--accent);
+    box-shadow: 0 0 12px rgba(74, 122, 255, .15);
+  }
+  .opt-btn:disabled { opacity: 0.3; cursor: default; }
+
+  /* Log */
+  #log {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    font-size: 11px;
+    font-family: 'SF Mono', 'Cascadia Code', monospace;
+    color: var(--muted);
+    max-height: 120px;
+    overflow-y: auto;
+    line-height: 1.6;
+  }
+  #log .info { color: var(--accent); }
+  #log .ok { color: var(--green); }
+  #log .err { color: var(--red); }
+  #log .warn { color: var(--orange); }
+
+  /* Spinner */
+  .spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,.15);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin .6s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Toast */
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--card2);
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 10px 20px;
+    font-size: 13px;
+    opacity: 0;
+    transition: opacity .3s;
+    pointer-events: none;
+    z-index: 99;
+    backdrop-filter: blur(8px);
+    max-width: 90%;
+    text-align: center;
+  }
+  #toast.show { opacity: 1; }
+
+  @media (min-width: 480px) {
+    body { max-width: 420px; margin: 0 auto; }
+  }
+</style>
+</head>
+<body>
+
+<h1>❄️ 冰封散热背夹</h1>
+<div class="subtitle">Web Bluetooth · 手机浏览器直接控制</div>
+
+<!-- Connection -->
+<div class="conn-row">
+  <div class="status-badge disconnected" id="statusBadge">❌ 未连接</div>
+  <button class="btn btn-primary" id="btnConnect">🔗 连接</button>
+  <button class="btn btn-danger" id="btnDisconnect" disabled>断开</button>
+</div>
+
+<!-- Status -->
+<div class="status-row">
+  <div class="card">
+    <div class="value" id="tempVal">--°C</div>
+    <div class="label">🌡️ 温度</div>
+  </div>
+  <div class="card">
+    <div class="value" id="powerVal">--</div>
+    <div class="label">🔋 功率</div>
+  </div>
+  <div class="card">
+    <div class="value" id="lightVal">--</div>
+    <div class="label">💡 灯效</div>
+  </div>
+</div>
+
+<!-- Controls -->
+<div class="ctrl-grid">
+  <div class="ctrl-group">
+    <div class="title">🔋 功率</div>
+    <div class="opt-row" id="powerOpts">
+      <button class="opt-btn" data-mode="0">静音</button>
+      <button class="opt-btn" data-mode="1">智能</button>
+      <button class="opt-btn" data-mode="2">极寒</button>
+    </div>
+  </div>
+  <div class="ctrl-group">
+    <div class="title">💡 灯效</div>
+    <div class="opt-row" id="lightOpts">
+      <button class="opt-btn" data-mode="0">🌈彩虹</button>
+      <button class="opt-btn" data-mode="1">🌬呼吸</button>
+      <button class="opt-btn" data-mode="2">💧流动</button>
+    </div>
+  </div>
+  <div class="ctrl-group full">
+    <div class="title">💡 灯效（续）</div>
+    <div class="opt-row" id="lightOpts2">
+      <button class="opt-btn" data-mode="3">☀️常亮</button>
+      <button class="opt-btn" data-mode="4">⬛关灯</button>
+    </div>
+  </div>
+</div>
+
+<!-- Log -->
+<div id="log">就绪 — 点击 [连接]，在系统弹窗中选择散热背夹</div>
+<div id="toast"></div>
+
+<script>
+// ================================================================
+// Xiaomi Cooler Web BLE Controller
+// ================================================================
+
+const UUIDS = {
+  service: '0000af00-0000-1000-8000-00805f9b34fb',
+  write:   '0000af07-0000-1000-8000-00805f9b34fb',
+  notify:  '0000af08-0000-1000-8000-00805f9b34fb',
+};
+
+// ---- Known device name filters ----
+const NAME_FILTERS = [
+  { namePrefix: 'Xiaomi' },
+  { namePrefix: 'MI' },
+  { namePrefix: 'Mijia' },
+  { namePrefix: 'Cooler' },
+];
+
+// ---- F2 light values (2-byte LE, F4-verified 2026-07-19) ----
+const F2_LIGHT = [0x0001, 0x0202, 0x0103, 0x0104, 0x0000];
+const F4_LIGHT = {};
+F2_LIGHT.forEach((v, i) => F4_LIGHT[v] = i);
+const LIGHT_NAMES = ['彩虹', '呼吸', '流动', '常亮', '关闭'];
+const POWER_NAMES  = ['静音', '智能', '极寒'];
+// F4 power value {0=Mid, 1=Low, 2=High} → UI index {0=静音, 1=智能, 2=极寒}
+const F4_POWER_TO_UI = [1, 0, 2];
+
+// ---- HCI-log static auth frames ----
+const AUTH = [
+  [0xfe,0xdc,0xba,0xc0,0x50,0x00,0x12,0x9b,0x01,0xf5,0x8e,0x94,0x9e,0xf4,0x6f,0x0f,0xb3,0x3b,0x42,0xdd,0x4e,0xba,0xc8,0xb7,0x0f,0xef],
+  [0xfe,0xdc,0xba,0xc0,0x51,0x00,0x03,0x01,0x01,0x00,0xef],
+  [0xfe,0xdc,0xba,0xc1,0x50,0x00,0x12,0x69,0x01,0x70,0xe9,0x3e,0xa1,0x41,0xe1,0xfc,0x67,0x3e,0x01,0x7e,0x97,0xea,0xdc,0x6b,0x96,0xef],
+  [0xfe,0xdc,0xba,0xc1,0x51,0x00,0x03,0x6a,0x01,0x00,0xef],
+];
+const INIT = [
+  [0xfe,0xdc,0xba,0xc1,0x0c,0x00,0x05,0x6b,0x00,0x00,0x00,0x00,0xef],
+  [0xfe,0xdc,0xba,0xc1,0x02,0x00,0x05,0x6c,0xff,0xff,0xff,0xff,0xef],
+  [0xfe,0xdc,0xba,0xc1,0x09,0x00,0x05,0x6d,0xff,0xff,0xff,0xff,0xef],
+];
+
+// ---- State ----
+let server = null, service = null, writeChar = null, notifyChar = null;
+let connected = false;
+let seq = 1;
+
+// ---- DOM ----
+const $ = id => document.getElementById(id);
+const badge  = $('statusBadge');
+const logEl  = $('log');
+const toastEl= $('toast');
+const tempV  = $('tempVal');
+const powerV = $('powerVal');
+const lightV = $('lightVal');
+
+// ---- Helpers ----
+function bytes(arr) { return new Uint8Array(arr); }
+function hex(b) { return Array.from(b).map(x => x.toString(16).padStart(2,'0')).join(' '); }
+
+function log(msg, cls='') {
+  const t = new Date().toLocaleTimeString('zh-CN', {hour12: false});
+  logEl.innerHTML = `<span class="${cls}">[${t}] ${msg}</span>\n` + logEl.innerHTML;
+  if (logEl.children.length > 50) logEl.removeChild(logEl.lastChild);
+}
+
+function toast(msg, dur=2000) {
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  setTimeout(() => toastEl.classList.remove('show'), dur);
+}
+
+function setConnected(conn) {
+  connected = conn;
+  $('btnConnect').disabled = conn;
+  $('btnDisconnect').disabled = !conn;
+  document.querySelectorAll('.opt-btn[data-mode]').forEach(b => b.disabled = !conn);
+  badge.textContent = conn ? '✅ 已连接' : '❌ 未连接';
+  badge.className = 'status-badge ' + (conn ? 'connected' : 'disconnected');
+}
+
+// ---- F4 notification parser ----
+function onF4(data) {
+  if (data[0]!==0xfe || data[1]!==0xdc || data[2]!==0xba) return;
+  if ((data[3]!==0x81 && data[3]!==0x01) || data[4]!==0xf4) return;
+
+  for (let i = 0; i < data.length - 3; i++) {
+    // Temperature (piid 0x3f)
+    if (data[i]===0x00 && data[i+1]===0x3f) {
+      let t = data[i+2]; t = t < 128 ? t : t - 256;
+      tempV.textContent = t + '°C';
+      if (t < 10) tempV.style.color = '#0088ff';
+      else if (t < 20) tempV.style.color = '#66bbff';
+      else tempV.style.color = '#ff8844';
+    }
+    // Power (piid 0x40)
+    if (data[i]===0x00 && data[i+1]===0x40 && data[i+2] < 3) {
+      const ui = F4_POWER_TO_UI[data[i+2]];
+      powerV.textContent = POWER_NAMES[ui];
+      document.querySelectorAll('#powerOpts .opt-btn').forEach((b, j) => {
+        b.classList.toggle('active', j === ui);
+      });
+    }
+    // Light (piid 0x42, 2-byte LE)
+    if (data[i]===0x00 && data[i+1]===0x42 && i+3 < data.length) {
+      const raw = data[i+2] | (data[i+3] << 8);
+      const idx = F4_LIGHT[raw];
+      if (idx !== undefined) {
+        lightV.textContent = LIGHT_NAMES[idx];
+        document.querySelectorAll('#lightOpts .opt-btn, #lightOpts2 .opt-btn[data-mode]').forEach(b => {
+          b.classList.toggle('active', parseInt(b.dataset.mode) === idx);
+        });
+      }
+    }
+  }
+}
+
+// ---- Write with auto-seq ----
+async function writeBLE(data) {
+  if (!writeChar || !connected) { log('未连接', 'err'); return false; }
+  const d = bytes(data);
+  // Auto-seq for F2 frames
+  if (d.length >= 8 && d[3]===0xc1 && d[4]===0xf2) { d[7] = seq; seq = (seq+1) & 0xff; }
+  try {
+    await writeChar.writeValue(d);
+    log(`→ ${hex(d)}`, 'info');
+    return true;
+  } catch(e) { log(`写入失败: ${e.message}`, 'err'); return false; }
+}
+
+// ---- Auth ----
+async function doAuth() {
+  log('认证 c0/c1...', 'warn');
+  for (const f of AUTH) { await writeBLE(f); await sleep(200); }
+  for (const f of INIT) { await writeBLE(f); await sleep(100); }
+  log('认证完成 ✓', 'ok');
+}
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+// ---- Commands ----
+async function setPower(mode) {
+  const val = [0x0001, 0x0000, 0x0002][mode];
+  if (val===undefined) return;
+  await writeBLE([0xfe,0xdc,0xba,0xc1,0xf2,0x00,0x06,seq,0x04,0x00,0x40, val&0xFF, val>>8, 0xef]);
+  seq = (seq+1) & 0xff;
+  // Optimistic update
+  powerV.textContent = POWER_NAMES[mode];
+  document.querySelectorAll('#powerOpts .opt-btn').forEach((b,i) => b.classList.toggle('active', i===mode));
+}
+
+async function setLight(mode) {
+  const val = F2_LIGHT[mode];
+  if (val===undefined) return;
+  await writeBLE([0xfe,0xdc,0xba,0xc1,0xf2,0x00,0x06,seq,0x04,0x00,0x42, val&0xFF, val>>8, 0xef]);
+  seq = (seq+1) & 0xff;
+  lightV.textContent = LIGHT_NAMES[mode];
+  document.querySelectorAll('#lightOpts .opt-btn, #lightOpts2 .opt-btn[data-mode]').forEach(b => {
+    b.classList.toggle('active', parseInt(b.dataset.mode) === mode);
+  });
+}
+
+// ================================================================
+// Event Handlers
+// ================================================================
+
+// ---- Connect ----
+$('btnConnect').addEventListener('click', async () => {
+  if (!navigator.bluetooth) {
+    log('此浏览器不支持 Web Bluetooth！请使用 Chrome/Edge', 'err');
+    toast('需要 Chrome/Edge + HTTPS', 3000); return;
+  }
+  const btn = $('btnConnect');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>连接中';
+  log('打开系统 BLE 弹窗...', 'warn');
+
+  try {
+    // Web Bluetooth: system dialog → user picks device → we continue
+    const device = await navigator.bluetooth.requestDevice({
+      filters: NAME_FILTERS,
+      optionalServices: [UUIDS.service],
+    });
+    log(`选择: ${device.name || '(无名称)'}`, 'ok');
+
+    server = await device.gatt.connect();
+    log('GATT 已连接 ✓', 'ok');
+    service = await server.getPrimaryService(UUIDS.service);
+    writeChar  = await service.getCharacteristic(UUIDS.write);
+    notifyChar = await service.getCharacteristic(UUIDS.notify);
+    await notifyChar.startNotifications();
+    notifyChar.addEventListener('characteristicvaluechanged', evt => {
+      onF4(new Uint8Array(evt.target.value.buffer));
+    });
+    log('通知订阅 ✓', 'ok');
+
+    await doAuth();
+
+    setConnected(true);
+    badge.textContent = `✅ ${device.name || '已连接'}`;
+    log('🎉 已就绪 — 可切功率/灯效', 'ok');
+    toast('已连接', 1200);
+  } catch(e) {
+    if (!e.message.includes('cancelled') && !e.message.includes('cancel')) {
+      log(`失败: ${e.message}`, 'err');
+      toast('连接失败', 2000);
+    } else {
+      log('用户取消', 'warn');
+    }
+    setConnected(false);
+  }
+  btn.disabled = false; btn.innerHTML = '🔗 连接';
+});
+
+// ---- Disconnect ----
+$('btnDisconnect').addEventListener('click', async () => {
+  try {
+    if (notifyChar) await notifyChar.stopNotifications();
+    if (server && server.connected) server.disconnect();
+  } catch(e) {}
+  setConnected(false);
+  server=null; service=null; writeChar=null; notifyChar=null;
+  tempV.textContent='--°C'; tempV.style.color='var(--muted)';
+  powerV.textContent='--'; lightV.textContent='--';
+  log('已断开', 'warn'); toast('已断开', 1000);
+});
+
+// ---- Power/Light button clicks ----
+document.querySelectorAll('#powerOpts .opt-btn').forEach(b =>
+  b.addEventListener('click', () => setPower(parseInt(b.dataset.mode))));
+document.querySelectorAll('#lightOpts .opt-btn, #lightOpts2 .opt-btn[data-mode]').forEach(b =>
+  b.addEventListener('click', () => setLight(parseInt(b.dataset.mode))));
+
+// ---- Init ----
+log('就绪 — 点击 [连接] 并选择散热背夹', 'info');
+</script>
+</body>
+</html>
