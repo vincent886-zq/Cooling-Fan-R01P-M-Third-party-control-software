@@ -139,6 +139,8 @@ class BleManager(private val context: Context) {
                 BluetoothProfile.STATE_CONNECTED -> {
                     isConnected = true
                     onLog?.invoke("GATT connected")
+                    // Request low-latency connection (11.25-15ms interval)
+                    gatt?.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH)
                     gatt?.discoverServices()
                 }
                 BluetoothProfile.STATE_DISCONNECTED -> {
