@@ -61,8 +61,16 @@ fun CoolerScreen(viewModel: CoolerViewModel = viewModel()) {
                 }
                 Column(Modifier.padding(horizontal=16.dp), verticalArrangement=Arrangement.spacedBy(12.dp)) {
                     TopBar(uiState, viewModel)
-                    if (uiState.isScanning || uiState.scannedDevices.isNotEmpty())
-                        DeviceCard(uiState, viewModel)
+
+                    // Device list with auto hide/show
+                    var showDevices by remember { mutableStateOf(true) }
+                    LaunchedEffect(uiState.isConnected) {
+                        showDevices = !uiState.isConnected
+                    }
+                    if (uiState.isScanning || uiState.scannedDevices.isNotEmpty()) {
+                        DeviceCard(uiState, viewModel, showDevices,
+                            onToggle = { showDevices = !showDevices })
+                    }
                     if (uiState.isConnected) {
                         StatusCards(uiState)
                         Controls(uiState, viewModel)
@@ -108,10 +116,19 @@ private fun TopBar(state: CoolerUiState, vm: CoolerViewModel) {
 
 // ============= Device List =============
 @Composable
-private fun DeviceCard(state: CoolerUiState, vm: CoolerViewModel) {
+private fun DeviceCard(state: CoolerUiState, vm: CoolerViewModel,
+                       show: Boolean, onToggle: () -> Unit) {
     Surface(shape=RoundedCornerShape(16.dp), color=CardBg,
             border = cardBorder) {
         Column(Modifier.padding(8.dp)) {
+            // Toggle header
+            Row(Modifier.fillMaxWidth().clickable { onToggle() }.padding(horizontal=12.dp, vertical=6.dp),
+                verticalAlignment=Alignment.CenterVertically) {
+                Text("📡 设备", fontSize=13.sp, color=Tx2, fontWeight=FontWeight.SemiBold)
+                Spacer(Modifier.weight(1f))
+                Text(if (show) "▲ 收起" else "▼ 展开", fontSize=12.sp, color=Tx2)
+            }
+            if (show) {
             state.scannedDevices.take(8).forEachIndexed { i, d ->
                 val known = CoolerProtocol.KNOWN_NAME_SUBSTR.any { d.name.lowercase().contains(it) }
                 Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
@@ -129,6 +146,7 @@ private fun DeviceCard(state: CoolerUiState, vm: CoolerViewModel) {
                 if (i < state.scannedDevices.size - 1) {
                     HorizontalDivider(color=DimW, thickness=.5.dp, modifier=Modifier.padding(horizontal=12.dp))
                 }
+            }
             }
             if (state.isScanning) {
                 Spacer(Modifier.height(8.dp))
