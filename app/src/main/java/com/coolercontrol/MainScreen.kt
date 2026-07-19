@@ -23,17 +23,17 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.coolercontrol.CoolerViewModel.ScannedDevice
 import com.coolercontrol.CoolerViewModel.CoolerUiState
 
-private val Bg1 = Color(0xFF0D0D14)
-private val CardBg = Color(0xFF1E1E30)
-private val CardBd = Color(0xFF2A2A40)
-private val Tx1 = Color(0xFFEEEEFF)
+private val Bg1 = Color(0xFFF5F5F8)
+private val CardBg = Color(0xFFFFFFFF)
+private val CardBd = Color(0xFFE0E0E8)
+private val Tx1 = Color(0xFF1A1A2E)
 private val Tx2 = Color(0xFF8888AA)
 private val Blue = Color(0xFF4A7AFF)
 private val Purple = Color(0xFF7C5CFC)
-private val Green = Color(0xFF00E096)
+private val Green = Color(0xFF00C48C)
 private val Red = Color(0xFFFF4757)
-private val Orange = Color(0xFFFFB34A)
-private val DimW = Color(0x18FFFFFF)
+private val Orange = Color(0xFFFF9F43)
+private val DimW = Color(0x10000000)
 
 private val cardBorder = BorderStroke(1.dp, CardBd)
 private val borderSt = Color(0xFF2A2A40)
@@ -42,7 +42,7 @@ private val borderSt = Color(0xFF2A2A40)
 fun CoolerScreen(viewModel: CoolerViewModel = viewModel()) {
     val uiState by viewModel.uiState.collectAsState()
     MaterialTheme(
-        colorScheme = darkColorScheme(
+        colorScheme = lightColorScheme(
             surface = Bg1, surfaceVariant = CardBg,
             onSurface = Tx1, onSurfaceVariant = Tx2,
             primary = Blue, secondary = Purple,
@@ -52,7 +52,7 @@ fun CoolerScreen(viewModel: CoolerViewModel = viewModel()) {
             Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
                 // Gradient header
                 Box(Modifier.fillMaxWidth().background(
-                    Brush.verticalGradient(listOf(Purple.copy(alpha=.3f), Bg1))
+                    Brush.verticalGradient(listOf(Purple.copy(alpha=.08f), Color.Transparent))
                 ).padding(start=20.dp, end=20.dp, top=28.dp, bottom=16.dp)) {
                     Column {
                         Text("❄️ CoolerControl", fontSize=22.sp, fontWeight=FontWeight.Bold, color=Tx1)
