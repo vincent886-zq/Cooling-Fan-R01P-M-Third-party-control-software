@@ -29,7 +29,7 @@ object CoolerProtocol {
     // MMA Frame header/footer
     // ================================================================
     private val MMA_HEAD = byteArrayOf(0xFE, 0xDC, 0xBA.toByte())
-    private const val MMA_FOOT = 0xEF.toByte()
+    private val MMA_FOOT: Byte = 0xEF.toByte()
 
     // ================================================================
     // Auth — c0/c1 static challenge-response (from HCI log capture)

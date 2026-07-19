@@ -218,7 +218,7 @@ private fun StatusRow(state: CoolerUiState) {
 }
 
 @Composable
-private fun StatusCard(label: String, value: String, valueColor: Color) {
+private fun RowScope.StatusCard(label: String, value: String, valueColor: Color) {
     Surface(
         modifier = Modifier.weight(1f),
         color = MaterialTheme.colorScheme.surfaceVariant,
