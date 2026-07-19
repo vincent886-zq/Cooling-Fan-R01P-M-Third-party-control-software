@@ -1,6 +1,7 @@
 package com.coolercontrol
 
 import android.bluetooth.*
+import android.bluetooth.le.BluetoothLeScanner
 import android.bluetooth.le.ScanCallback
 import android.bluetooth.le.ScanFilter
 import android.bluetooth.le.ScanResult

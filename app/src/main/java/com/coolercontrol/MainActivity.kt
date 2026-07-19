@@ -9,6 +9,19 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 
 /**
@@ -67,26 +80,26 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@androidx.compose.runtime.Composable
+@Composable
 fun BLEErrorScreen(message: String) {
-    androidx.compose.material3.MaterialTheme(
-        colorScheme = androidx.compose.material3.darkColorScheme(
-            surface = androidx.compose.ui.graphics.Color(0xFF0F0F14),
-            onSurface = androidx.compose.ui.graphics.Color(0xFFE8E8F0)
+    MaterialTheme(
+        colorScheme = darkColorScheme(
+            surface = Color(0xFF0F0F14),
+            onSurface = Color(0xFFE8E8F0)
         )
     ) {
-        androidx.compose.material3.Surface(
-            modifier = androidx.compose.ui.Modifier.fillMaxSize(),
-            color = androidx.compose.material3.MaterialTheme.colorScheme.surface
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.surface
         ) {
-            androidx.compose.foundation.layout.Box(
-                contentAlignment = androidx.compose.ui.Alignment.Center
+            Box(
+                contentAlignment = Alignment.Center
             ) {
-                androidx.compose.material3.Text(
+                Text(
                     message,
-                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                    modifier = androidx.compose.ui.Modifier.padding(32.dp)
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(32.dp)
                 )
             }
         }
