@@ -14,10 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -76,11 +73,8 @@ fun CoolerScreen(viewModel: CoolerViewModel = viewModel()) {
                     }
                     if (uiState.isConnected) {
                         StatusCards(uiState)
-                        Controls(uiState, viewModel)
-                    } else {
-                        Text("🔍 点击上方「扫描」查找散热器", fontSize=12.sp, color=Tx2,
-                             modifier=Modifier.fillMaxWidth().padding(vertical=20.dp), textAlign=TextAlign.Center)
                     }
+                    Controls(uiState, viewModel)
                     LogPanel(uiState.log)
                     Spacer(Modifier.height(20.dp))
                 }
@@ -165,7 +159,7 @@ private fun StatusCards(state: CoolerUiState) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.spacedBy(10.dp)) {
         StatusCard("🌡️", state.temperature?.let { "${it}°C" } ?: "--°C", "温度",
                    state.temperature?.let { if (it<10) Blue else if (it<20) Color(0xFF66BBFF) else Orange } ?: Tx2)
-        StatusCard("⚡", state.powerMode, "功率", Tx1)
+        StatusCard("🔥", state.powerMode, "功率", Tx1)
         StatusCard("💡", state.lightMode, "灯效", Tx1)
     }
 }
@@ -187,14 +181,28 @@ private fun RowScope.StatusCard(icon: String, value: String, label: String, valu
 // ============= Controls =============
 @Composable
 private fun Controls(state: CoolerUiState, vm: CoolerViewModel) {
-    ControlGroup("⚡ 功率切换") {
-        CoolerProtocol.PowerMode.entries.forEach { mode ->
-            CtrlBtn(mode.label) { vm.setPower(mode) }
+    // Power: gradient from white→blue based on intensity
+    data class PB(val label: String, val icon: String, val color: Color)
+    val pwrItems = listOf(
+        PB("静音", "🍃", Color(0xFF9DC3FF)),
+        PB("智能", "🌪️", Color(0xFF6B9FFF)),
+        PB("极寒", "❄️", Color(0xFF4A7AFF)),
+    )
+    ControlGroup("🔋 功率切换") {
+        pwrItems.forEach { (label, icon, color) ->
+            CtrlBtn("$icon $label", color) { vm.setPower(
+                when (label) {
+                    "静音" -> CoolerProtocol.PowerMode.LOW
+                    "智能" -> CoolerProtocol.PowerMode.MID
+                    "极寒" -> CoolerProtocol.PowerMode.HIGH
+                    else -> CoolerProtocol.PowerMode.MID
+                }
+            )}
         }
     }
     ControlGroup("💡 灯效切换") {
         CoolerProtocol.LightMode.entries.forEach { mode ->
-            CtrlBtn(mode.label) { vm.setLight(mode) }
+            CtrlBtn(mode.label, Color(0xFF00B4D8)) { vm.setLight(mode) }
         }
     }
 }
@@ -212,14 +220,14 @@ private fun ControlGroup(title: String, content: @Composable RowScope.() -> Unit
 }
 
 @Composable
-private fun RowScope.CtrlBtn(text: String, onClick: () -> Unit) {
+private fun RowScope.CtrlBtn(text: String, borderColor: Color, onClick: () -> Unit) {
     val shape = RoundedCornerShape(22.dp)
     Box(
         modifier = Modifier
             .weight(1f)
             .height(46.dp)
             .background(Color.White, shape)
-            .border(1.5.dp, Color(0xFF00B4D8), shape)
+            .border(1.5.dp, borderColor, shape)
             .clickable { onClick() },
         contentAlignment = Alignment.Center
     ) {

@@ -69,7 +69,7 @@ class CoolerViewModel(application: Application) : AndroidViewModel(application) 
         bleManager.onStatusUpdate = { status ->
             viewModelScope.launch {
                 _uiState.value = _uiState.value.copy(
-                    temperature = status.temperature,
+                    temperature = status.temperature ?: _uiState.value.temperature,
                     powerMode = status.powerMode?.label ?: _uiState.value.powerMode,
                     lightMode = status.lightMode?.label ?: _uiState.value.lightMode
                 )
@@ -96,7 +96,7 @@ class CoolerViewModel(application: Application) : AndroidViewModel(application) 
     fun disconnect() {
         bleManager.disconnect()
         _uiState.value = _uiState.value.copy(
-            temperature = null, powerMode = "--", lightMode = "--"
+            isConnected = false
         )
     }
 
