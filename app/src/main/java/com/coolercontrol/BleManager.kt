@@ -161,6 +161,7 @@ class BleManager(private val context: Context) {
             writeChar = service.getCharacteristic(
                 java.util.UUID.fromString(CoolerProtocol.WRITE_CHAR)
             )
+            writeChar?.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
             val notifyChar = service.getCharacteristic(
                 java.util.UUID.fromString(CoolerProtocol.NOTIFY_CHAR)
             )
@@ -235,9 +236,9 @@ class BleManager(private val context: Context) {
 
     private fun write(data: ByteArray, delayMs: Long = 0) {
         val char = writeChar ?: return
-        val g = gatt ?: return
         try {
-            g.writeCharacteristic(char, data, BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE)
+            char.value = data
+            gatt?.writeCharacteristic(char)
         } catch (e: Exception) {
             onLog?.invoke("Write failed: ${e.message}")
         }
