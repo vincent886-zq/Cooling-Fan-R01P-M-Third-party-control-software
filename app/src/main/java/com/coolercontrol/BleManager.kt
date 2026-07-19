@@ -35,6 +35,7 @@ class BleManager(private val context: Context) {
     private var bluetoothLeScanner: BluetoothLeScanner? = null
     private var gatt: BluetoothGatt? = null
     private var writeChar: BluetoothGattCharacteristic? = null
+    private var notifyChar: BluetoothGattCharacteristic? = null
     private var isScanning = false
     private var isConnected = false
 
@@ -162,18 +163,18 @@ class BleManager(private val context: Context) {
                 java.util.UUID.fromString(CoolerProtocol.WRITE_CHAR)
             )
             writeChar?.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
-            val notifyChar = service.getCharacteristic(
+            notifyChar = service.getCharacteristic(
                 java.util.UUID.fromString(CoolerProtocol.NOTIFY_CHAR)
             )
 
-            if (writeChar == null || notifyChar == null) {
+            if (writeChar == null || this.notifyChar == null) {
                 onLog?.invoke("Required chars not found")
                 return
             }
 
             // Enable notifications
             gatt.setCharacteristicNotification(notifyChar, true)
-            val descriptor = notifyChar.getDescriptor(
+            val descriptor = this.notifyChar?.getDescriptor(
                 java.util.UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
             )
             descriptor?.let {
@@ -225,12 +226,16 @@ class BleManager(private val context: Context) {
     fun setPowerMode(mode: CoolerProtocol.PowerMode) {
         val frame = CoolerProtocol.buildPowerFrame(mode)
         write(frame)
+        // Force immediate F4 read after write
+        notifyChar?.let { gatt?.readCharacteristic(it) }
         onLog?.invoke("→ Power: ${mode.label}")
     }
 
     fun setLightMode(mode: CoolerProtocol.LightMode) {
         val frame = CoolerProtocol.buildLightFrame(mode)
         write(frame)
+        // Force immediate F4 read after write
+        notifyChar?.let { gatt?.readCharacteristic(it) }
         onLog?.invoke("→ Light: ${mode.label}")
     }
 
