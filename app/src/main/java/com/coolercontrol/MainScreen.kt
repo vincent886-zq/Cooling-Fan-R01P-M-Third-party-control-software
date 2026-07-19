@@ -1,8 +1,11 @@
 package com.coolercontrol
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -10,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -19,313 +23,192 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.coolercontrol.CoolerViewModel.ScannedDevice
 import com.coolercontrol.CoolerViewModel.CoolerUiState
 
-/**
- * Main screen — dark theme BLE cooler control UI
- */
+private val Bg1 = Color(0xFF0D0D14)
+private val CardBg = Color(0xFF1E1E30)
+private val CardBd = Color(0xFF2A2A40)
+private val Tx1 = Color(0xFFEEEEFF)
+private val Tx2 = Color(0xFF8888AA)
+private val Blue = Color(0xFF4A7AFF)
+private val Purple = Color(0xFF7C5CFC)
+private val Green = Color(0xFF00E096)
+private val Red = Color(0xFFFF4757)
+private val Orange = Color(0xFFFFB34A)
+private val DimW = Color(0x18FFFFFF)
+
+private val cardBorder = BorderStroke(1.dp, CardBd)
+private val borderSt = Color(0xFF2A2A40)
+
 @Composable
 fun CoolerScreen(viewModel: CoolerViewModel = viewModel()) {
     val uiState by viewModel.uiState.collectAsState()
-
     MaterialTheme(
         colorScheme = darkColorScheme(
-            surface = Color(0xFF0F0F14),
-            surfaceVariant = Color(0xFF1A1A24),
-            onSurface = Color(0xFFE8E8F0),
-            onSurfaceVariant = Color(0xFF8888A0),
-            primary = Color(0xFF4A7AFF),
-            secondary = Color(0xFF6C5CE7),
-            tertiary = Color(0xFF00D68F),
+            surface = Bg1, surfaceVariant = CardBg,
+            onSurface = Tx1, onSurfaceVariant = Tx2,
+            primary = Blue, secondary = Purple,
         )
     ) {
-        Surface(modifier = Modifier.fillMaxSize()) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
-                    .verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // ---- Title ----
-                Text(
-                    "❄️ 冰封散热背夹",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center
-                )
-                Text(
-                    "Xiaomi Cooling Fan BLE Control",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Center
-                )
-
-                // ---- Connection bar ----
-                ConnectionBar(
-                    isConnected = uiState.isConnected,
-                    isScanning = uiState.isScanning,
-                    onScan = { viewModel.startScan() },
-                    onDisconnect = { viewModel.disconnect() }
-                )
-
-                // ---- Scanned devices ----
-                if (uiState.isScanning || uiState.scannedDevices.isNotEmpty()) {
-                    DeviceList(
-                        devices = uiState.scannedDevices,
-                        isScanning = uiState.isScanning,
-                        onSelect = { viewModel.connect(it.address) }
-                    )
-                }
-
-                // ---- Status cards ----
-                StatusRow(uiState)
-
-                // ---- Controls (only when connected) ----
-                if (uiState.isConnected) {
-                    Controls(
-                        onSetPower = { viewModel.setPower(it) },
-                        onSetLight = { viewModel.setLight(it) }
-                    )
-                }
-
-                // ---- Log ----
-                LogPanel(logs = uiState.log)
-            }
-        }
-    }
-}
-
-// ================================================================
-// Connection Bar
-// ================================================================
-@Composable
-private fun ConnectionBar(
-    isConnected: Boolean,
-    isScanning: Boolean,
-    onScan: () -> Unit,
-    onDisconnect: () -> Unit
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Surface(
-            color = if (isConnected) Color(0xFF1B3A2D)
-                    else MaterialTheme.colorScheme.surfaceVariant,
-            shape = RoundedCornerShape(12.dp),
-            modifier = Modifier.weight(1f)
-        ) {
-            Text(
-                if (isConnected) "✅ 已连接" else if (isScanning) "⏳ 扫描中..." else "❌ 未连接",
-                modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
-                fontSize = 13.sp,
-                color = if (isConnected) Color(0xFF00D68F) else MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-
-        if (!isConnected) {
-            Button(
-                onClick = onScan,
-                enabled = !isScanning,
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.secondary
-                )
-            ) {
-                Text(if (isScanning) "..." else "🔍 扫描")
-            }
-        } else {
-            Button(
-                onClick = onDisconnect,
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFEE5A24)
-                )
-            ) { Text("断开") }
-        }
-    }
-}
-
-// ================================================================
-// Device List
-// ================================================================
-@Composable
-private fun DeviceList(
-    devices: List<ScannedDevice>,
-    isScanning: Boolean,
-    onSelect: (ScannedDevice) -> Unit
-) {
-    Surface(
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        shape = RoundedCornerShape(14.dp)
-    ) {
-        Column(modifier = Modifier.padding(8.dp)) {
-            devices.take(8).forEach { device ->
-                val isKnown = CoolerProtocol.KNOWN_NAME_SUBSTR.any {
-                    device.name.lowercase().contains(it)
-                }
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(10.dp))
-                        .clickable { onSelect(device) }
-                        .padding(12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            device.name,
-                            fontWeight = if (isKnown) FontWeight.Bold else FontWeight.Normal,
-                            fontSize = 14.sp,
-                            color = if (isKnown) MaterialTheme.colorScheme.primary
-                                    else MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(device.address, fontSize = 11.sp,
-                             color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Box(Modifier.fillMaxSize().background(Bg1)) {
+            Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+                // Gradient header
+                Box(Modifier.fillMaxWidth().background(
+                    Brush.verticalGradient(listOf(Purple.copy(alpha=.3f), Bg1))
+                ).padding(start=20.dp, end=20.dp, top=28.dp, bottom=16.dp)) {
+                    Column {
+                        Text("❄️ CoolerControl", fontSize=22.sp, fontWeight=FontWeight.Bold, color=Tx1)
+                        Text("小米冰封散热背夹", fontSize=13.sp, color=Tx2)
                     }
-                    Text("${device.rssi} dBm", fontSize = 11.sp,
-                         color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Column(Modifier.padding(horizontal=16.dp), verticalArrangement=Arrangement.spacedBy(12.dp)) {
+                    TopBar(uiState, viewModel)
+                    if (uiState.isScanning || uiState.scannedDevices.isNotEmpty())
+                        DeviceCard(uiState, viewModel)
+                    if (uiState.isConnected) {
+                        StatusCards(uiState)
+                        Controls(uiState, viewModel)
+                    } else {
+                        Text("🔍 点击上方「扫描」查找散热器", fontSize=12.sp, color=Tx2,
+                             modifier=Modifier.fillMaxWidth().padding(vertical=20.dp), textAlign=TextAlign.Center)
+                    }
+                    LogPanel(uiState.log)
+                    Spacer(Modifier.height(20.dp))
                 }
             }
-            if (isScanning) {
-                Text("扫描中...  ", fontSize = 12.sp,
-                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                     modifier = Modifier.padding(8.dp))
+        }
+    }
+}
+
+// ============= Top Bar =============
+@Composable
+private fun TopBar(state: CoolerUiState, vm: CoolerViewModel) {
+    Surface(shape=RoundedCornerShape(16.dp), color=CardBg,
+            border = cardBorder) {
+        Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment=Alignment.CenterVertically) {
+            Box(Modifier.size(10.dp).clip(CircleShape).background(
+                if (state.isConnected) Green else if (state.isScanning) Orange else DimW))
+            Spacer(Modifier.width(10.dp))
+            Text(if (state.isConnected) "已连接" else if (state.isScanning) "扫描中..." else "未连接",
+                 fontSize=14.sp, fontWeight=FontWeight.Medium, color=Tx1)
+            Spacer(Modifier.weight(1f))
+            if (!state.isConnected) {
+                Button(onClick={ vm.startScan() }, enabled=!state.isScanning,
+                    shape=RoundedCornerShape(12.dp),
+                    colors=ButtonDefaults.buttonColors(containerColor=Blue),
+                    contentPadding=PaddingValues(horizontal=16.dp, vertical=8.dp)
+                ) { Text(if (state.isScanning) "..." else "🔍 扫描", fontSize=13.sp) }
+            } else {
+                Button(onClick={ vm.disconnect() }, shape=RoundedCornerShape(12.dp),
+                    colors=ButtonDefaults.buttonColors(containerColor=Red.copy(alpha=.15f)),
+                    contentPadding=PaddingValues(horizontal=16.dp, vertical=8.dp)
+                ) { Text("断开", fontSize=13.sp, color=Red) }
             }
         }
     }
 }
 
-// ================================================================
-// Status Row
-// ================================================================
+// ============= Device List =============
 @Composable
-private fun StatusRow(state: CoolerUiState) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        StatusCard("🌡️ 温度", state.temperature?.let { "${it}°C" } ?: "--°C",
-                   tempColor(state.temperature))
-        StatusCard("🔋 功率", state.powerMode,
-                   MaterialTheme.colorScheme.onSurface)
-        StatusCard("💡 灯效", state.lightMode,
-                   MaterialTheme.colorScheme.onSurface)
-    }
-}
-
-@Composable
-private fun RowScope.StatusCard(label: String, value: String, valueColor: Color) {
-    Surface(
-        modifier = Modifier.weight(1f),
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        shape = RoundedCornerShape(14.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp).fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(value, fontSize = if (label.contains("温度")) 28.sp else 18.sp,
-                 fontWeight = FontWeight.Bold, color = valueColor)
-            Text(label, fontSize = 11.sp,
-                 color = MaterialTheme.colorScheme.onSurfaceVariant)
+private fun DeviceCard(state: CoolerUiState, vm: CoolerViewModel) {
+    Surface(shape=RoundedCornerShape(16.dp), color=CardBg,
+            border = cardBorder) {
+        Column(Modifier.padding(8.dp)) {
+            state.scannedDevices.take(8).forEachIndexed { i, d ->
+                val known = CoolerProtocol.KNOWN_NAME_SUBSTR.any { d.name.lowercase().contains(it) }
+                Row(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
+                    .clickable { vm.connect(d.address) }.padding(12.dp),
+                    verticalAlignment=Alignment.CenterVertically) {
+                    Text(if (known) "🔥" else "📡", fontSize=16.sp)
+                    Spacer(Modifier.width(10.dp))
+                    Column(Modifier.weight(1f)) {
+                        Text(d.name, fontSize=14.sp, fontWeight=if (known) FontWeight.Bold else FontWeight.Normal,
+                             color=if (known) Blue else Tx1)
+                        Text(d.address, fontSize=10.sp, color=Tx2)
+                    }
+                    Text("${d.rssi} dBm", fontSize=11.sp, color=if (d.rssi > -70) Green else Tx2)
+                }
+                if (i < state.scannedDevices.size - 1) {
+                    HorizontalDivider(color=DimW, thickness=.5.dp, modifier=Modifier.padding(horizontal=12.dp))
+                }
+            }
+            if (state.isScanning) {
+                Spacer(Modifier.height(8.dp))
+                Text("🔍 扫描中...", fontSize=12.sp, color=Tx2, modifier=Modifier.padding(horizontal=12.dp))
+            }
         }
     }
 }
 
+// ============= Status =============
 @Composable
-private fun tempColor(temp: Int?): Color = when {
-    temp == null -> MaterialTheme.colorScheme.onSurfaceVariant
-    temp < 10   -> Color(0xFF0088FF)
-    temp < 20   -> Color(0xFF66BBFF)
-    else        -> Color(0xFFFF8844)
+private fun StatusCards(state: CoolerUiState) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.spacedBy(10.dp)) {
+        StatusCard("🌡️", state.temperature?.let { "${it}°C" } ?: "--°C", "温度",
+                   state.temperature?.let { if (it<10) Blue else if (it<20) Color(0xFF66BBFF) else Orange } ?: Tx2)
+        StatusCard("⚡", state.powerMode, "功率", Tx1)
+        StatusCard("💡", state.lightMode, "灯效", Tx1)
+    }
 }
 
-// ================================================================
-// Controls
-// ================================================================
 @Composable
-private fun Controls(
-    onSetPower: (CoolerProtocol.PowerMode) -> Unit,
-    onSetLight: (CoolerProtocol.LightMode) -> Unit
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        // Power row
-        ControlGroup("🔋 功率") {
-            CoolerProtocol.PowerMode.entries.forEach { mode ->
-                ControlButton(mode.label) { onSetPower(mode) }
-            }
+private fun StatusCard(icon: String, value: String, label: String, valueColor: Color) {
+    Surface(Modifier.weight(1f), shape=RoundedCornerShape(16.dp), color=CardBg,
+            border = cardBorder) {
+        Column(Modifier.padding(12.dp).fillMaxWidth(), horizontalAlignment=Alignment.CenterHorizontally) {
+            Text(icon, fontSize=18.sp)
+            Spacer(Modifier.height(4.dp))
+            Text(value, fontSize= if (label=="温度") 24.sp else 16.sp,
+                 fontWeight=FontWeight.Bold, color=valueColor, maxLines=1)
+            Text(label, fontSize=11.sp, color=Tx2)
         }
-        // Light row
-        ControlGroup("💡 灯效") {
-            CoolerProtocol.LightMode.entries.take(3).forEach { mode ->
-                ControlButton(mode.label) { onSetLight(mode) }
-            }
+    }
+}
+
+// ============= Controls =============
+@Composable
+private fun Controls(state: CoolerUiState, vm: CoolerViewModel) {
+    ControlGroup("⚡ 功率切换") {
+        CoolerProtocol.PowerMode.entries.forEach { mode ->
+            CtrlBtn(mode.label) { vm.setPower(mode) }
         }
-        ControlGroup("💡 灯效（续）") {
-            CoolerProtocol.LightMode.entries.drop(3).forEach { mode ->
-                ControlButton(mode.label) { onSetLight(mode) }
-            }
+    }
+    ControlGroup("💡 灯效切换") {
+        CoolerProtocol.LightMode.entries.forEach { mode ->
+            CtrlBtn(mode.label) { vm.setLight(mode) }
         }
     }
 }
 
 @Composable
 private fun ControlGroup(title: String, content: @Composable RowScope.() -> Unit) {
-    Surface(
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        shape = RoundedCornerShape(14.dp),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Text(title, fontSize = 12.sp,
-                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                 fontWeight = FontWeight.SemiBold)
-            Spacer(Modifier.height(8.dp))
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                modifier = Modifier.fillMaxWidth(),
-                content = content
-            )
+    Surface(shape=RoundedCornerShape(16.dp), color=CardBg,
+            border = cardBorder) {
+        Column(Modifier.padding(14.dp)) {
+            Text(title, fontSize=13.sp, color=Tx2, fontWeight=FontWeight.SemiBold)
+            Spacer(Modifier.height(10.dp))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.spacedBy(8.dp), content=content)
         }
     }
 }
 
 @Composable
-private fun RowScope.ControlButton(text: String, onClick: () -> Unit) {
-    Button(
-        onClick = onClick,
-        shape = RoundedCornerShape(10.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
-        modifier = Modifier.weight(1f)
-    ) {
-        Text(text, fontSize = 12.sp, maxLines = 1)
-    }
+private fun RowScope.CtrlBtn(text: String, onClick: () -> Unit) {
+    Button(onClick=onClick, shape=RoundedCornerShape(12.dp),
+        colors=ButtonDefaults.buttonColors(containerColor=CardBd, contentColor=Tx1),
+        contentPadding=PaddingValues(horizontal=10.dp, vertical=10.dp),
+        modifier=Modifier.weight(1f)
+    ) { Text(text, fontSize=12.sp, fontWeight=FontWeight.Medium, maxLines=1) }
 }
 
-// ================================================================
-// Log
-// ================================================================
+// ============= Log =============
 @Composable
 private fun LogPanel(logs: List<String>) {
-    Surface(
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        shape = RoundedCornerShape(14.dp),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Column(modifier = Modifier.padding(12.dp).heightIn(max = 140.dp)) {
-            Text("日志", fontSize = 11.sp,
-                 color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(Modifier.height(4.dp))
-            logs.take(8).forEach { msg ->
-                Text(msg, fontSize = 10.sp,
-                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                     fontFamily = MaterialTheme.typography.bodySmall.fontFamily)
+    Surface(shape=RoundedCornerShape(16.dp), color=CardBg,
+            border = cardBorder) {
+        Column(Modifier.padding(14.dp).heightIn(max=130.dp)) {
+            Text("📋 日志", fontSize=12.sp, color=Tx2)
+            Spacer(Modifier.height(6.dp))
+            logs.take(6).forEach { msg ->
+                Text(msg, fontSize=10.sp, color=Tx2, lineHeight=16.sp)
             }
         }
     }
