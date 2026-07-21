@@ -59,6 +59,7 @@ class CoolerViewModel(application: Application) : AndroidViewModel(application) 
         bleManager.onConnected = { connected ->
             viewModelScope.launch {
                 _uiState.value = _uiState.value.copy(isConnected = connected)
+                if (_uiState.value.showNotif) CoolerService.refreshNotif(appContext)
             }
         }
         bleManager.onStatusUpdate = { status ->
@@ -74,6 +75,7 @@ class CoolerViewModel(application: Application) : AndroidViewModel(application) 
                     powerMode = powerLabel,
                     lightMode = lightLabel
                 )
+                if (_uiState.value.showNotif) CoolerService.refreshNotif(appContext)
             }
         }
         bleManager.onLog = { msg ->
