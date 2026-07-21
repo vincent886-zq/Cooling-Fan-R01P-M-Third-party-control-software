@@ -29,7 +29,7 @@ class CoolerService : Service() {
         isRunning = true
         appContext = this
         createChannel()
-        startForeground(CoolerNotification.NOTIF_ID, buildNotif())
+        startForeground(CoolerNotification.NOTIF_ID, buildNotif(this))
     }
 
     override fun onDestroy() {
