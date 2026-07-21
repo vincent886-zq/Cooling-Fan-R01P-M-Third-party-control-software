@@ -10,6 +10,7 @@ import com.coolercontrol.CoolerProtocol.PowerMode
  * Global state holder accessible from BroadcastReceiver.
  */
 object CoolerGlobal {
+    var currentTempString: String = "--°C"
     var currentPowerLabel: String = "--"
     var currentLightLabel: String = "--"
     var bleManager: BleManager? = null

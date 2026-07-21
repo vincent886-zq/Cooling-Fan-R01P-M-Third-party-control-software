@@ -60,7 +60,7 @@ class CoolerService : Service() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
         val g = CoolerGlobal
-        val content = "🌡️${g.currentPowerLabel}  🔥${g.currentPowerLabel}  💡${g.currentLightLabel}"
+        val content = "🌡️${g.currentTempString}  🔥${g.currentPowerLabel}  💡${g.currentLightLabel}"
 
         return NotificationCompat.Builder(this, CoolerNotification.CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_dialog_info)

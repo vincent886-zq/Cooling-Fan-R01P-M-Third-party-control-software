@@ -65,10 +65,12 @@ class CoolerViewModel(application: Application) : AndroidViewModel(application) 
             viewModelScope.launch {
                 val powerLabel = status.powerMode?.label ?: _uiState.value.powerMode
                 val lightLabel = status.lightMode?.label ?: _uiState.value.lightMode
+                val temp = status.temperature ?: _uiState.value.temperature
+                CoolerGlobal.currentTempString = temp?.let { "${it}°C" } ?: CoolerGlobal.currentTempString
                 CoolerGlobal.currentPowerLabel = powerLabel
                 CoolerGlobal.currentLightLabel = lightLabel
                 _uiState.value = _uiState.value.copy(
-                    temperature = status.temperature ?: _uiState.value.temperature,
+                    temperature = temp,
                     powerMode = powerLabel,
                     lightMode = lightLabel
                 )
