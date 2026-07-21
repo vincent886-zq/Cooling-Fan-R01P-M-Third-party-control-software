@@ -1,6 +1,7 @@
 package com.coolercontrol
 
 import android.app.Application
+import android.content.Intent
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,8 +33,7 @@ class CoolerViewModel(application: Application) : AndroidViewModel(application) 
     )
 
     init {
-        CoolerNotification.createChannel(appContext)
-        NotificationActionReceiver.bleManager = bleManager
+        CoolerGlobal.bleManager = bleManager
 
         bleManager.onScanResult = { name, addr, rssi ->
             viewModelScope.launch {
@@ -59,17 +59,19 @@ class CoolerViewModel(application: Application) : AndroidViewModel(application) 
         bleManager.onConnected = { connected ->
             viewModelScope.launch {
                 _uiState.value = _uiState.value.copy(isConnected = connected)
-                updateNotif()
             }
         }
         bleManager.onStatusUpdate = { status ->
             viewModelScope.launch {
+                val powerLabel = status.powerMode?.label ?: _uiState.value.powerMode
+                val lightLabel = status.lightMode?.label ?: _uiState.value.lightMode
+                CoolerGlobal.currentPowerLabel = powerLabel
+                CoolerGlobal.currentLightLabel = lightLabel
                 _uiState.value = _uiState.value.copy(
                     temperature = status.temperature ?: _uiState.value.temperature,
-                    powerMode = status.powerMode?.label ?: _uiState.value.powerMode,
-                    lightMode = status.lightMode?.label ?: _uiState.value.lightMode
+                    powerMode = powerLabel,
+                    lightMode = lightLabel
                 )
-                updateNotif()
             }
         }
         bleManager.onLog = { msg ->
@@ -77,7 +79,6 @@ class CoolerViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    // ---- Actions ----
     fun startScan() {
         _uiState.value = _uiState.value.copy(isScanning = true, scannedDevices = emptyList())
         addLog("正在扫描...")
@@ -106,24 +107,16 @@ class CoolerViewModel(application: Application) : AndroidViewModel(application) 
     fun toggleNotif() {
         val newVal = !_uiState.value.showNotif
         _uiState.value = _uiState.value.copy(showNotif = newVal)
+        val svc = Intent(appContext, CoolerService::class.java)
         if (newVal) {
-            CoolerNotification.update(
-                appContext, _uiState.value.temperature,
-                _uiState.value.powerMode, _uiState.value.lightMode,
-                _uiState.value.isConnected, true
-            )
+            svc.action = "START"
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O)
+                appContext.startForegroundService(svc)
+            else
+                appContext.startService(svc)
         } else {
-            CoolerNotification.cancel(appContext)
-        }
-    }
-
-    private fun updateNotif() {
-        val s = _uiState.value
-        if (s.showNotif) {
-            CoolerNotification.update(
-                appContext, s.temperature, s.powerMode,
-                s.lightMode, s.isConnected, true
-            )
+            svc.action = "STOP"
+            appContext.startService(svc)
         }
     }
 

@@ -30,15 +30,10 @@
             </intent-filter>
         </activity>
 
-        <!-- Notification action receiver -->
-        <receiver
-            android:name=".NotificationActionReceiver"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.coolercontrol.CYCLE_POWER" />
-                <action android:name="com.coolercontrol.CYCLE_LIGHT" />
-                <action android:name="com.coolercontrol.TOGGLE_LIGHT" />
-            </intent-filter>
-        </receiver>
+        <!-- Foreground service for notification + BLE -->
+        <service
+            android:name=".CoolerService"
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice" />
     </application>
 </manifest>
