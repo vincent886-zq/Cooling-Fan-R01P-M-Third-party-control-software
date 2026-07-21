@@ -77,6 +77,18 @@ fun CoolerScreen(viewModel: CoolerViewModel = viewModel()) {
                     }
                     Controls(uiState, viewModel)
                     LogPanel(uiState.log)
+
+                    // Notification toggle
+                    Surface(shape=RoundedCornerShape(14.dp), color=CardBg, border=cardBorder) {
+                        Row(Modifier.fillMaxWidth().padding(horizontal=14.dp, vertical=10.dp),
+                            verticalAlignment=Alignment.CenterVertically) {
+                            Text("🔔 状态栏显示", fontSize=13.sp, color=Tx2)
+                            Spacer(Modifier.weight(1f))
+                            Switch(checked=uiState.showNotif,
+                                   onCheckedChange={ viewModel.toggleNotif() },
+                                   colors=SwitchDefaults.colors(checkedTrackColor=Blue))
+                        }
+                    }
                     Spacer(Modifier.height(20.dp))
                 }
             }

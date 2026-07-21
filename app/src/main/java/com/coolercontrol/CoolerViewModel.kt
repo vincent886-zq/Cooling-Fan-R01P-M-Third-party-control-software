@@ -8,17 +8,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-/**
- * ViewModel — state container for the cooler control UI.
- *
- * All BLE interactions go through BleManager; ViewModel translates
- * raw events into UI-ready StateFlows.
- */
 class CoolerViewModel(application: Application) : AndroidViewModel(application) {
 
     private val bleManager = BleManager(application)
+    private val appContext = application.applicationContext
 
-    // ---- UI State ----
     private val _uiState = MutableStateFlow(CoolerUiState())
     val uiState: StateFlow<CoolerUiState> = _uiState.asStateFlow()
 
@@ -29,30 +23,31 @@ class CoolerViewModel(application: Application) : AndroidViewModel(application) 
         val isConnected: Boolean = false,
         val isScanning: Boolean = false,
         val scannedDevices: List<ScannedDevice> = emptyList(),
-        val log: List<String> = listOf("就绪 — 点击扫描")
+        val log: List<String> = listOf("就绪 — 点击扫描"),
+        val showNotif: Boolean = false
     )
 
     data class ScannedDevice(
-        val name: String,
-        val address: String,
-        val rssi: Int
+        val name: String, val address: String, val rssi: Int
     )
 
     init {
-        // Wire BLE callbacks
+        CoolerNotification.createChannel(appContext)
+        NotificationActionReceiver.bleManager = bleManager
+
         bleManager.onScanResult = { name, addr, rssi ->
             viewModelScope.launch {
                 val current = _uiState.value.scannedDevices.toMutableList()
-                // Avoid duplicates, prefer higher RSSI
                 val existing = current.indexOfFirst { it.address == addr }
                 if (existing >= 0) {
-                    if (rssi > current[existing].rssi) {
+                    if (rssi > current[existing].rssi)
                         current[existing] = ScannedDevice(name, addr, rssi)
-                    }
                 } else {
                     current.add(ScannedDevice(name, addr, rssi))
                 }
-                _uiState.value = _uiState.value.copy(scannedDevices = current.sortedByDescending { it.rssi })
+                _uiState.value = _uiState.value.copy(
+                    scannedDevices = current.sortedByDescending { it.rssi }
+                )
             }
         }
         bleManager.onScanFinished = {
@@ -64,6 +59,7 @@ class CoolerViewModel(application: Application) : AndroidViewModel(application) 
         bleManager.onConnected = { connected ->
             viewModelScope.launch {
                 _uiState.value = _uiState.value.copy(isConnected = connected)
+                updateNotif()
             }
         }
         bleManager.onStatusUpdate = { status ->
@@ -73,6 +69,7 @@ class CoolerViewModel(application: Application) : AndroidViewModel(application) 
                     powerMode = status.powerMode?.label ?: _uiState.value.powerMode,
                     lightMode = status.lightMode?.label ?: _uiState.value.lightMode
                 )
+                updateNotif()
             }
         }
         bleManager.onLog = { msg ->
@@ -95,9 +92,7 @@ class CoolerViewModel(application: Application) : AndroidViewModel(application) 
 
     fun disconnect() {
         bleManager.disconnect()
-        _uiState.value = _uiState.value.copy(
-            isConnected = false
-        )
+        _uiState.value = _uiState.value.copy(isConnected = false)
     }
 
     fun setPower(mode: CoolerProtocol.PowerMode) {
@@ -106,6 +101,30 @@ class CoolerViewModel(application: Application) : AndroidViewModel(application) 
 
     fun setLight(mode: CoolerProtocol.LightMode) {
         bleManager.setLightMode(mode)
+    }
+
+    fun toggleNotif() {
+        val newVal = !_uiState.value.showNotif
+        _uiState.value = _uiState.value.copy(showNotif = newVal)
+        if (newVal) {
+            CoolerNotification.update(
+                appContext, _uiState.value.temperature,
+                _uiState.value.powerMode, _uiState.value.lightMode,
+                _uiState.value.isConnected, true
+            )
+        } else {
+            CoolerNotification.cancel(appContext)
+        }
+    }
+
+    private fun updateNotif() {
+        val s = _uiState.value
+        if (s.showNotif) {
+            CoolerNotification.update(
+                appContext, s.temperature, s.powerMode,
+                s.lightMode, s.isConnected, true
+            )
+        }
     }
 
     private fun addLog(msg: String) {
