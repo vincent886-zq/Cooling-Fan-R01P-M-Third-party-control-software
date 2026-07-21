@@ -1,5 +1,6 @@
 package com.coolercontrol
 
+import android.annotation.SuppressLint
 import android.bluetooth.*
 import android.bluetooth.le.BluetoothLeScanner
 import android.bluetooth.le.ScanCallback
@@ -13,10 +14,8 @@ import java.util.UUID
 
 /**
  * BLE Manager — scan, connect, GATT read/write/notify
- *
- * Uses Android's standard BluetoothLeScanner and BluetoothGatt APIs.
- * All callbacks run on the main thread unless specified.
  */
+@SuppressLint("MissingPermission")
 class BleManager(private val context: Context) {
 
     // ================================================================
@@ -24,7 +23,7 @@ class BleManager(private val context: Context) {
     // ================================================================
     var onScanResult: ((name: String, address: String, rssi: Int) -> Unit)? = null
     var onScanFinished: (() -> Unit)? = null
-    var onConnected: ((Boolean) -> Unit)? = null   // true=connected, false=disconnected
+    var onConnected: ((Boolean) -> Unit)? = null
     var onStatusUpdate: ((CoolerProtocol.F4Status) -> Unit)? = null
     var onLog: ((String) -> Unit)? = null
 
@@ -46,7 +45,7 @@ class BleManager(private val context: Context) {
     }
 
     // ================================================================
-    // Paired devices (alternative to BLE scan)
+    // Paired devices
     // ================================================================
     fun getBondedCoolerAddress(): String? {
         val adapter = bluetoothAdapter ?: return null
@@ -63,31 +62,23 @@ class BleManager(private val context: Context) {
     fun startScan(timeoutMs: Long = 8000) {
         if (isScanning) return
         val scanner = bluetoothLeScanner ?: run {
-            onLog?.invoke("BLE not available")
-            return
+            onLog?.invoke("BLE not available"); return
         }
         isScanning = true
 
-        // Check paired devices first
         val paired = getBondedCoolerAddress()
         if (paired != null) {
             onLog?.invoke("Found paired cooler: $paired")
             onScanResult?.invoke("(已配对) 冰封散热背夹", paired, 0)
         }
 
-        // Also start BLE scan for any nearby devices
         val settings = ScanSettings.Builder()
-            .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
-            .build()
-
+            .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build()
         scanner.startScan(emptyList(), settings, scanCallback)
         onLog?.invoke("Scanning...")
 
-        // Auto-stop after timeout
         Timer().schedule(object : TimerTask() {
-            override fun run() {
-                stopScan()
-            }
+            override fun run() { stopScan() }
         }, timeoutMs)
     }
 
@@ -122,8 +113,7 @@ class BleManager(private val context: Context) {
     fun disconnect() {
         gatt?.disconnect()
         gatt?.close()
-        gatt = null
-        writeChar = null
+        gatt = null; writeChar = null
         isConnected = false
         onConnected?.invoke(false)
         onLog?.invoke("Disconnected")
@@ -138,13 +128,11 @@ class BleManager(private val context: Context) {
                 BluetoothProfile.STATE_CONNECTED -> {
                     isConnected = true
                     onLog?.invoke("GATT connected")
-                    // Request low-latency connection (11.25-15ms interval)
                     gatt?.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH)
                     gatt?.discoverServices()
                 }
                 BluetoothProfile.STATE_DISCONNECTED -> {
-                    isConnected = false
-                    writeChar = null
+                    isConnected = false; writeChar = null
                     onConnected?.invoke(false)
                     onLog?.invoke("GATT disconnected")
                 }
@@ -153,29 +141,22 @@ class BleManager(private val context: Context) {
 
         override fun onServicesDiscovered(gatt: BluetoothGatt?, status: Int) {
             if (status != BluetoothGatt.GATT_SUCCESS || gatt == null) {
-                onLog?.invoke("Service discovery failed")
-                return
+                onLog?.invoke("Service discovery failed"); return
             }
-            val service = gatt.getService(java.util.UUID.fromString(CoolerProtocol.SERVICE_UUID))
+            val service = gatt.getService(UUID.fromString(CoolerProtocol.SERVICE_UUID))
                 ?: run { onLog?.invoke("Service not found"); return }
 
-            writeChar = service.getCharacteristic(
-                java.util.UUID.fromString(CoolerProtocol.WRITE_CHAR)
-            )
+            writeChar = service.getCharacteristic(UUID.fromString(CoolerProtocol.WRITE_CHAR))
             writeChar?.writeType = BluetoothGattCharacteristic.WRITE_TYPE_NO_RESPONSE
-            notifyChar = service.getCharacteristic(
-                java.util.UUID.fromString(CoolerProtocol.NOTIFY_CHAR)
-            )
+            notifyChar = service.getCharacteristic(UUID.fromString(CoolerProtocol.NOTIFY_CHAR))
 
             if (writeChar == null || notifyChar == null) {
-                onLog?.invoke("Required chars not found")
-                return
+                onLog?.invoke("Required chars not found"); return
             }
 
-            // Enable notifications
             gatt.setCharacteristicNotification(notifyChar, true)
-            val descriptor: BluetoothGattDescriptor? = notifyChar?.getDescriptor(
-                java.util.UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
+            val descriptor: BluetoothGattDescriptor? = notifyChar.getDescriptor(
+                UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
             )
             if (descriptor != null) {
                 descriptor.value = BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE
@@ -183,28 +164,15 @@ class BleManager(private val context: Context) {
             }
 
             onLog?.invoke("Services ready, starting auth...")
-
-            // Auth in background thread to avoid blocking main thread
-            Thread {
-                doAuth()
-            }.start()
+            Thread { doAuth() }.start()
         }
 
         override fun onCharacteristicChanged(
-            gatt: BluetoothGatt?,
-            characteristic: BluetoothGattCharacteristic?
+            gatt: BluetoothGatt?, characteristic: BluetoothGattCharacteristic?
         ) {
             val data = characteristic?.value ?: return
             val status = CoolerProtocol.parseF4(data)
             onStatusUpdate?.invoke(status)
-        }
-
-        override fun onCharacteristicWrite(
-            gatt: BluetoothGatt?,
-            characteristic: BluetoothGattCharacteristic?,
-            status: Int
-        ) {
-            // Write completed (write-with-response)
         }
     }
 
@@ -213,12 +181,8 @@ class BleManager(private val context: Context) {
     // ================================================================
     private fun doAuth() {
         onLog?.invoke("Auth c0/c1...")
-        CoolerProtocol.AUTH_FRAMES.forEach { frame ->
-            write(frame, delayMs = 300)
-        }
-        CoolerProtocol.INIT_FRAMES.forEach { frame ->
-            write(frame, delayMs = 150)
-        }
+        CoolerProtocol.AUTH_FRAMES.forEach { write(it, delayMs = 300) }
+        CoolerProtocol.INIT_FRAMES.forEach { write(it, delayMs = 150) }
         onLog?.invoke("Auth complete ✓")
         onConnected?.invoke(true)
     }
@@ -226,7 +190,6 @@ class BleManager(private val context: Context) {
     fun setPowerMode(mode: CoolerProtocol.PowerMode) {
         val frame = CoolerProtocol.buildPowerFrame(mode)
         write(frame)
-        // Force immediate F4 read after write
         notifyChar?.let { gatt?.readCharacteristic(it) }
         onLog?.invoke("→ Power: ${mode.label}")
     }
@@ -234,7 +197,6 @@ class BleManager(private val context: Context) {
     fun setLightMode(mode: CoolerProtocol.LightMode) {
         val frame = CoolerProtocol.buildLightFrame(mode)
         write(frame)
-        // Force immediate F4 read after write
         notifyChar?.let { gatt?.readCharacteristic(it) }
         onLog?.invoke("→ Light: ${mode.label}")
     }

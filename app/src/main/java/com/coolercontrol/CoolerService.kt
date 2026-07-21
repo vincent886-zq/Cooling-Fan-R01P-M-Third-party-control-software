@@ -1,5 +1,6 @@
 package com.coolercontrol
 
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
@@ -9,6 +10,7 @@ import androidx.core.app.NotificationCompat
 /**
  * Foreground service: owns the notification, responds instantly to buttons.
  */
+@SuppressLint("MissingPermission")
 class CoolerService : Service() {
 
     override fun onBind(intent: Intent?) = null
