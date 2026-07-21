@@ -230,7 +230,8 @@ private fun ControlGroup(title: String, content: @Composable RowScope.() -> Unit
         Column(Modifier.padding(14.dp)) {
             Text(title, fontSize=13.sp, color=Tx2, fontWeight=FontWeight.SemiBold)
             Spacer(Modifier.height(10.dp))
-            Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.spacedBy(8.dp), content=content)
+            Row(Modifier.fillMaxWidth(), horizontalArrangement=Arrangement.spacedBy(8.dp),
+                content = content)
         }
     }
 }
