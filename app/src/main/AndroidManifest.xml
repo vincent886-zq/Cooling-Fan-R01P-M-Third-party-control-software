@@ -10,6 +10,8 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <!-- Notification permission (Android 13+) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Foreground service permission (required for API 28+) -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <uses-feature android:name="android.hardware.bluetooth_le" android:required="true" />
 
@@ -33,7 +35,6 @@
         <!-- Foreground service for notification + BLE -->
         <service
             android:name=".CoolerService"
-            android:exported="false"
-            android:foregroundServiceType="connectedDevice" />
+            android:exported="false" />
     </application>
 </manifest>
