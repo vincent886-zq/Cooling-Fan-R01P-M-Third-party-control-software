@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1040" viewBox="0 0 1440 1040" role="img" aria-labelledby="title desc">
+  <title id="title">Android 控制请求与状态更新 / Android command and feedback sequence</title>
+  <desc id="desc">The UI calls ViewModel, BleManager constructs F2 via CoolerProtocol and writes AF07. Device F4 arrives on AF08, is parsed, and updates StateFlow and Compose. This shows the control path after initialization, not a strict authentication state machine.</desc>
+  <defs>
+    <marker id="cmd" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="12" refY="7" orient="auto"><path d="M2 2 L12 7 L2 12" fill="none" stroke="#3563db" stroke-width="2.5"/></marker>
+    <marker id="state" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="12" refY="7" orient="auto"><path d="M2 2 L12 7 L2 12" fill="none" stroke="#078478" stroke-width="2.5"/></marker>
+    <style>
+      text{font-family:"Microsoft YaHei","Noto Sans CJK SC",Arial,sans-serif;fill:#1d2a42}
+      .title{font-size:34px;font-weight:700}.sub{font-size:23px;fill:#56657c}
+      .head{font-size:24px;font-weight:700}.en{font-size:20px;fill:#56657c}.label{font-size:23px}
+      .cmd{stroke:#3563db;stroke-width:4;fill:none;marker-end:url(#cmd)}
+      .state{stroke:#078478;stroke-width:4;fill:none;marker-end:url(#state)}
+    </style>
+  </defs>
+  <rect width="1440" height="1040" fill="#fff"/>
+  <text x="40" y="53" class="en" style="fill:#3563db;font-weight:700;letter-spacing:2px">COOLERCONTROL / ANDROID DATA FLOW</text>
+  <text x="40" y="106" class="title">一次控制，怎样更新到界面？</text>
+  <text x="40" y="142" class="sub">From a mode selection to device-reported UI state</text>
+  <g fill="#f4f7fc" stroke="#d7dfe9" stroke-width="1.5">
+    <rect x="40" y="180" width="260" height="94" rx="13"/>
+    <rect x="400" y="180" width="260" height="94" rx="13"/>
+    <rect x="760" y="180" width="260" height="94" rx="13"/>
+    <rect x="1120" y="180" width="280" height="94" rx="13"/>
+  </g>
+  <text x="170" y="220" text-anchor="middle" class="head">Compose 界面</text><text x="170" y="250" text-anchor="middle" class="en">MainScreen</text>
+  <text x="530" y="220" text-anchor="middle" class="head">界面状态层</text><text x="530" y="250" text-anchor="middle" class="en">CoolerViewModel</text>
+  <text x="890" y="220" text-anchor="middle" class="head">蓝牙与协议</text><text x="890" y="250" text-anchor="middle" class="en">BleManager / Protocol</text>
+  <text x="1260" y="220" text-anchor="middle" class="head">散热背夹</text><text x="1260" y="250" text-anchor="middle" class="en">R01P-M device</text>
+  <g stroke="#d8e0eb" stroke-width="2" stroke-dasharray="5 7">
+    <path d="M170 286 V900"/><path d="M530 286 V900"/><path d="M890 286 V900"/><path d="M1260 286 V900"/>
+  </g>
+  <text x="350" y="313" text-anchor="middle" class="label">① 选择功率 / 灯效</text>
+  <text x="350" y="342" text-anchor="middle" class="en">Select power / lighting</text>
+  <path d="M182 364 H516" class="cmd"/>
+  <text x="710" y="408" text-anchor="middle" class="label">② 转交操作请求</text>
+  <text x="710" y="437" text-anchor="middle" class="en">setPower / setLight</text>
+  <path d="M542 460 H876" class="cmd"/>
+  <text x="1075" y="504" text-anchor="middle" class="label">③ 构造并写入 F2</text>
+  <text x="1075" y="533" text-anchor="middle" class="en">Build F2 → AF07 write</text>
+  <path d="M902 556 H1246" class="cmd"/>
+  <text x="1075" y="608" text-anchor="middle" class="label">④ 设备回传当前状态</text>
+  <text x="1075" y="637" text-anchor="middle" class="en">AF08 → F4 notification</text>
+  <path d="M1248 660 H904" class="state"/>
+  <text x="710" y="704" text-anchor="middle" class="label">⑤ 解析温度与模式</text>
+  <text x="710" y="733" text-anchor="middle" class="en">Parse reported status</text>
+  <path d="M878 756 H544" class="state"/>
+  <text x="350" y="800" text-anchor="middle" class="label">⑥ 更新显示状态</text>
+  <text x="350" y="829" text-anchor="middle" class="en">StateFlow → Compose</text>
+  <path d="M518 852 H184" class="state"/>
+  <path d="M40 930 H1400" stroke="#e0e6ef"/>
+  <text x="40" y="968" class="label">初始化后的主要控制路径；F4 也可能由物理按键或周期上报触发。</text>
+  <text x="40" y="1003" class="en">Main path after initialization. F4 may also follow a physical-button action or periodic device reporting.</text>
+</svg>

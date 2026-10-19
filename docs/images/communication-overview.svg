@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="920" viewBox="0 0 1440 920" role="img" aria-labelledby="title desc">
+  <title id="title">CoolerControl：本地 BLE 控制与状态回传 / Local BLE control and device feedback</title>
+  <desc id="desc">Android sends initialization and F2 requests through AF07. Device replies and F4 state return through AF08. Python and Web are independent implementations, not shared runtime components.</desc>
+  <defs>
+    <marker id="blue" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="12" refY="7" orient="auto"><path d="M2 2 L12 7 L2 12" fill="none" stroke="#3563db" stroke-width="2.5" stroke-linejoin="round"/></marker>
+    <marker id="green" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="12" refY="7" orient="auto"><path d="M2 2 L12 7 L2 12" fill="none" stroke="#078478" stroke-width="2.5" stroke-linejoin="round"/></marker>
+    <marker id="gray" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" refX="12" refY="7" orient="auto"><path d="M2 2 L12 7 L2 12" fill="none" stroke="#8490a4" stroke-width="2.5" stroke-linejoin="round"/></marker>
+    <style>
+      text {font-family:"Microsoft YaHei","Noto Sans CJK SC",Arial,sans-serif;fill:#1d2a42}
+      .title {font-size:34px;font-weight:700}.sub {font-size:23px;fill:#56657c}
+      .head {font-size:27px;font-weight:700}.en {font-size:21px;fill:#56657c}
+      .label {font-size:23px}.small {font-size:20px;fill:#56657c}
+      .command {stroke:#3563db;stroke-width:4;fill:none;marker-end:url(#blue)}
+      .feedback {stroke:#078478;stroke-width:4;fill:none;marker-end:url(#green)}
+      .alternative {stroke:#8490a4;stroke-width:2.5;stroke-dasharray:8 7;fill:none}
+    </style>
+  </defs>
+  <rect width="1440" height="920" fill="#fff"/>
+  <text x="40" y="53" class="small" style="fill:#3563db;font-weight:700;letter-spacing:2px">COOLERCONTROL / COMMUNICATION</text>
+  <text x="40" y="106" class="title">本地 BLE 控制与状态回传</text>
+  <text x="40" y="142" class="sub">Local BLE control and device feedback</text>
+
+  <rect x="40" y="184" width="320" height="352" rx="18" fill="#f3f6ff" stroke="#cbd7f6" stroke-width="2"/>
+  <text x="200" y="229" text-anchor="middle" class="head">Android 手机</text>
+  <text x="200" y="260" text-anchor="middle" class="en">Native Android app</text>
+  <path d="M64 280 H336" stroke="#d3dcf1"/>
+  <text x="200" y="326" text-anchor="middle" class="label">选择功率 / 灯效</text>
+  <text x="200" y="357" text-anchor="middle" class="en">Power / lighting controls</text>
+  <text x="200" y="434" text-anchor="middle" class="label">温度 / 档位 / 灯效</text>
+  <text x="200" y="465" text-anchor="middle" class="en">Device-reported status</text>
+  <text x="200" y="509" text-anchor="middle" class="small">Kotlin · Compose · Notifications</text>
+
+  <rect x="570" y="184" width="300" height="352" rx="18" fill="#f8fafc" stroke="#d7dfe9" stroke-width="2"/>
+  <text x="720" y="229" text-anchor="middle" class="head">BLE / GATT</text>
+  <text x="720" y="260" text-anchor="middle" class="en">Service AF00</text>
+  <rect x="594" y="302" width="252" height="78" rx="10" fill="#eaf0ff"/>
+  <text x="720" y="334" text-anchor="middle" class="label" style="fill:#2953c2;font-weight:700">AF07 · 写入 / Write</text>
+  <text x="720" y="362" text-anchor="middle" class="small">初始化 + F2 控制</text>
+  <rect x="594" y="407" width="252" height="78" rx="10" fill="#e6f5f1"/>
+  <text x="720" y="439" text-anchor="middle" class="label" style="fill:#08776e;font-weight:700">AF08 · 通知 / Notify</text>
+  <text x="720" y="467" text-anchor="middle" class="small">应答 + F4 状态</text>
+
+  <rect x="1080" y="184" width="320" height="352" rx="18" fill="#f0f9f6" stroke="#cae4db" stroke-width="2"/>
+  <text x="1240" y="229" text-anchor="middle" class="head">小米散热背夹</text>
+  <text x="1240" y="260" text-anchor="middle" class="en">Xiaomi R01P-M cooler</text>
+  <path d="M1104 280 H1376" stroke="#cee3dc"/>
+  <text x="1240" y="326" text-anchor="middle" class="label">响应档位与灯效请求</text>
+  <text x="1240" y="357" text-anchor="middle" class="en">Power and lighting modes</text>
+  <text x="1240" y="434" text-anchor="middle" class="label">传感器与当前模式</text>
+  <text x="1240" y="465" text-anchor="middle" class="en">Sensor and current modes</text>
+  <text x="1240" y="502" text-anchor="middle" class="small">设备自身保护保持不变</text>
+  <text x="1240" y="525" text-anchor="middle" class="small" style="font-size:17px">Device protections unchanged</text>
+
+  <text x="465" y="301" text-anchor="middle" class="small" style="fill:#2953c2">控制请求</text>
+  <text x="465" y="327" text-anchor="middle" class="small" style="fill:#2953c2">Control requests</text>
+  <path d="M372 350 H556" class="command"/>
+  <path d="M882 350 H1066" class="command"/>
+  <text x="975" y="301" text-anchor="middle" class="small" style="fill:#2953c2">初始化 / F2</text>
+  <text x="975" y="327" text-anchor="middle" class="small" style="fill:#2953c2">Init / F2 writes</text>
+
+  <path d="M1068 450 H884" class="feedback"/>
+  <path d="M558 450 H374" class="feedback"/>
+  <text x="975" y="397" text-anchor="middle" class="small" style="fill:#08776e">应答 / F4</text>
+  <text x="975" y="423" text-anchor="middle" class="small" style="fill:#08776e">Replies / F4</text>
+  <text x="465" y="397" text-anchor="middle" class="small" style="fill:#08776e">状态回传</text>
+  <text x="465" y="423" text-anchor="middle" class="small" style="fill:#08776e">Device feedback</text>
+
+  <path d="M365 650 V574 H720 V548" class="alternative" marker-end="url(#gray)"/>
+  <path d="M1075 650 V574 H728" class="alternative"/>
+  <rect x="520" y="600" width="400" height="34" fill="#fff"/>
+  <text x="720" y="624" text-anchor="middle" class="small">其他独立实现 / Independent clients</text>
+  <rect x="40" y="650" width="650" height="130" rx="14" fill="#f8fafc" stroke="#d7dfe9"/>
+  <text x="72" y="695" class="head">Python · CLI / PyQt5</text>
+  <text x="72" y="731" class="en">PC 控制与调试 / Desktop control and diagnostics</text>
+  <rect x="750" y="650" width="650" height="130" rx="14" fill="#f8fafc" stroke="#d7dfe9"/>
+  <text x="782" y="695" class="head">Web Bluetooth</text>
+  <text x="782" y="731" class="en">浏览器历史实现 / Browser implementation archive</text>
+  <text x="40" y="835" class="label">无需项目云服务；各端独立连接，不共享运行时。</text>
+  <text x="40" y="868" class="en">No project cloud service. Each client has its own BLE implementation.</text>
+  <text x="40" y="901" class="small">通信原理示意，不代表各平台具有相同兼容性 / Architecture, not a cross-platform compatibility claim.</text>
+</svg>

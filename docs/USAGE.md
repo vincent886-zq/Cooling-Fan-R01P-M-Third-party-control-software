@@ -1,12 +1,14 @@
 # 安装、运行与源码构建
 
+**简体中文** · [English](USAGE.en.md)
+
 [返回主页](../README.md) · [协议说明](PROTOCOL.md)
 
 ## 1. Android：先下载 APK
 
 从 [正式发布页](https://github.com/vincent886-zq/Cooling-Fan-R01P-M-Third-party-control-software/releases/latest) 获取 `CoolerControl-v1.0.0-debug.apk`。同页附源码包和 `SHA256SUMS.txt`，不必把整个仓库下载到手机。
 
-这是当前原有源码构建的 **debug 签名安装包**。本次整理没有修改应用逻辑、协议、应用版本或界面；发布的是已有功能更完整的本机源码快照。
+这是我现有 Android 工程构建的 **debug 签名安装包**，与 v1.0.0 标签中的应用源码对应。后续中英文文档与示意图更新不改变 APK，也不移动已发布标签。
 
 ### 基本操作
 
@@ -38,7 +40,7 @@ cd Cooling-Fan-R01P-M-Third-party-control-software
 
 当前构建配置：JDK / JVM 17 目标、Android SDK 35、Android Gradle Plugin 8.7.0、Kotlin 2.0.21、Gradle 8.9。
 
-普通安装和构建不需要运行 `push_fix.bat`。它是作者历史开发辅助脚本，包含强制推送命令，不属于应用使用步骤。
+普通安装和构建不需要运行 `push_fix.bat`。它是我早期开发使用的辅助脚本，包含强制推送命令，不属于应用使用步骤。
 
 ### Android Studio
 
@@ -109,7 +111,7 @@ python -m http.server 8000
 
 然后使用支持 Web Bluetooth 的浏览器访问 `http://localhost:8000/cooler_web.html`。手机访问局域网普通 HTTP 地址与本机 localhost 不同，不能据此认为满足安全上下文要求；手机通常需要可信 HTTPS 服务。
 
-**当前 Web 源码保留历史实现，初始化写入存在 `connected` 状态门控时序问题。** 本次仅发布原有源码，没有修复该逻辑，不将此页面描述为已和作者 Android 自用版同等验证的替代安装方式。优先使用作者确认正常使用的 Android 版。
+**当前 Web 历史实现的初始化写入存在 `connected` 状态门控时序问题，尚未修复。** 日常使用优先选择我正在使用的 Android 版；浏览器页面目前作为开发过程和独立实现的源码保留。
 
 ## 5. 校验下载文件
 
