@@ -118,6 +118,23 @@ Temperature is reported by the cooler, not the phone's processor. This project d
 - [My mechanical engineering and automation portfolio](https://github.com/vincent886-zq/Mechanical-Engineering-Portfolio)
 - [My research instrumentation and control software](https://github.com/vincent886-zq/Research-Instrumentation-Control)
 
+## Support the project
+
+If CoolerControl has helped you and you would like to leave a tip, you can buy me a coffee ☕
+
+Support is entirely optional. No payment is required to download or use the software. Stars, bug reports and compatibility feedback are equally appreciated. Thank you!
+
+<details>
+<summary>Show WeChat Pay QR code</summary>
+
+<p align="center">
+  <img src="docs/images/wechat-support.jpg" width="280" alt="WeChat Pay collection code for optional support of CoolerControl">
+</p>
+
+Scan with WeChat. If you are viewing this on the same phone, save the image and select it from the album in WeChat's scanner. Verify the recipient before paying.
+
+</details>
+
 This is an unofficial personal project I maintain. It is not affiliated with or endorsed by Xiaomi. The repository retains its original MIT declaration; third-party dependencies remain subject to their own licenses.
 
 [vincent886-zq](https://github.com/vincent886-zq)

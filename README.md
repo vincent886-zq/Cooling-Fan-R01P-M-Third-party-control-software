@@ -118,6 +118,23 @@ Android 是我目前的日常使用入口。Python 与 Web 有独立的运行环
 - [我的机械设计与机电自动化作品](https://github.com/vincent886-zq/Mechanical-Engineering-Portfolio)
 - [我的科研仪器采集与控制软件](https://github.com/vincent886-zq/Research-Instrumentation-Control)
 
+## 支持项目
+
+如果 CoolerControl 有帮到您，想打赏的话，可以请我喝一杯咖啡 ☕
+
+打赏完全自愿，软件的下载与使用不以打赏为前提。Star、问题反馈和兼容性反馈同样是支持，谢谢！
+
+<details>
+<summary>展开微信收款码</summary>
+
+<p align="center">
+  <img src="docs/images/wechat-support.jpg" width="280" alt="自愿支持 CoolerControl 的微信收款码">
+</p>
+
+使用微信扫一扫；如果正在同一部手机上浏览，可保存图片后在微信中从相册识别。付款前请核对收款人。
+
+</details>
+
 这是我维护的非官方个人项目，与小米无隶属或背书关系。许可沿用仓库原有的 MIT 声明，第三方依赖遵循各自许可。
 
 [vincent886-zq](https://github.com/vincent886-zq)
